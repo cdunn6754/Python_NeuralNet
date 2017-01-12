@@ -1,0 +1,6 @@
+import numpy as np
+import pandas as pd
+import nn_functions as nf
+from nn_functions import sigmoid
+
+print sigmoid(4.234)
