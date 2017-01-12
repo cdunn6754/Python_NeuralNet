@@ -23,18 +23,20 @@ def forward_prop(Theta, x_train):
 def back_prop(Theta, x_train, y_train):
     A = forward_prop(Theta, x_train)
     last_delta = A[-1] - y_train # delta of the output layer
-    Delta = []
-    for i in range(len(Theta) -1):
+    Delta = list() # empty list to hold delta (cap.delta)
+    for i in range(len(Theta)):
         print('Iteration of the bp loop %s\n'  %(str(i)))
         previous_a = A[-1 - (i + 1)]# lose the bias
         if not i == 0: #except for output layer, lose the bias
             last_delta = last_delta[1:] 
         previous_delta = np.matmul(np.transpose(Theta[-1 - i]), last_delta) \
                 * previous_a * (1 - previous_a)
-        Delta = [np.outer(last_delta, previous_a) , Delta]
+        Delta.insert(0,np.outer(last_delta, previous_a))
         last_delta = previous_delta
 
     return Delta
+
+def cost_function(Theta, X_list, 
 
         
         
