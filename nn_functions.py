@@ -5,6 +5,13 @@ import matplotlib.pyplot as plt
 def sigmoid(z):
     return 1/(1 + np.e ** -z)
 
+# get rid of the bias weigthts in theta_vector (set them to 0)
+def make_reg_Theta(Theta):
+    reg_Theta = Theta
+    for i in range(len(Theta)):
+        reg_Theta[i][:,0] = 0
+    return reg_Theta
+
 # unroll the solution vector into matrix of one-hot vectors
 # returns them in matrix shape [outputclasses, number of training examples]
 def one_hot(vec, num_classes):
@@ -75,9 +82,33 @@ def cost_function(Theta, X_train, Y_train, lam):
     
     return J
 
+def gradient_function(Theta,X_train, Y_train):
+    m = float(X_train.shape[0]) # number of training samples
+    
+    # Loop for backprop, turned into a mess
+    # Have to do the first one out of loop to get the list going
+    # then do nested loops to add matrices from other training examples to 
+    # the running sum
+    print ('Calculating gradients')
+    Delta = back_prop(Theta,X_train[0,:],Y_train[:,0])
+    trials = np.arange(1,int(m)-1) # go through trials excluding the first one
+    for i in trials:
+        temp_Delta = back_prop(Theta,X_train[i,:], Y_train[:,i])
+        for j in range(len(Delta)): # go through all matrices in Delta
+            Delta[j] = Delta[j] + temp_Delta[j]
 
-    
+    # Dont regularize the bais weights
+    reg_theta = make_reg_Theta(Theta)
+
+    # Unroll reg_Theta and Delta (horizontal first, then vertical)
+    # note that they are the same size list
+    # each element of the two lists is a matrix, and the matrix 
+    # sizes correspond between the lists as well
+    unrolled_reg_Theta = np.array()
+    unrolled_Delta = np.array()
+    for i in range(len(Delta)):
+        reg_Theta[i] = reg_Theta[i].flatten()
+        Delta[i] = Delta[i].flatten()
     
 
-    
         

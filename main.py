@@ -35,24 +35,7 @@ for i in range(len(l) - 1):
 J = nf.cost_function(Theta,X_train,Y_train, lam)
 #A = nf.forward_prop(Theta,X_train[0,:])
 
-# Loop for backprop, turned into a mess
-# Have to do the first one out of loop to get the list going
-# then do nested loops to add matrices from other training examples to 
-# the running sum
-Delta = nf.back_prop(Theta,X_train[0,:],Y_train[:,0])
-trials = np.arange(1,int(m)-1)
-for i in trials:
-    temp_Delta = nf.back_prop(Theta,X_train[i,:], Y_train[:,i])
-    for j in range(len(Delta)):
-        mat = Delta[j]
-        mat = mat + temp_Delta[j]
-
-# Make a Theta without the bias weights
-reg_Theta = Theta
-for i in range(len(reg_Theta)):
-    reg_Theta[i][:,0] = 0
-
-print reg_Theta[2][:,0]
+nf.gradient_function(Theta,X_train,Y_train)
 
     
 
