@@ -12,6 +12,15 @@ def make_reg_Theta(Theta):
         reg_Theta[i][:,0] = 0
     return reg_Theta
 
+# Unroll a list of np arrays
+def unroll_np_list(list1):
+    unrolled_list1 = np.array([0]) # need to initate with dummy
+    for i in range(len(list1)):
+        unrolled_list1 = np.hstack((unrolled_list1, list1[i].flatten()))
+    unrolled_list1 = np.delete(unrolled_list1, 0, 0) # get rid of dummy
+    return unrolled_list1
+        
+
 # unroll the solution vector into matrix of one-hot vectors
 # returns them in matrix shape [outputclasses, number of training examples]
 def one_hot(vec, num_classes):
@@ -44,6 +53,8 @@ def forward_prop(Theta, x_train):
     # loop through layers but do so for every training example at once
     for i in range(len(Theta)):
         theta = Theta[i]
+        print( 'This is theta:')
+        print theta
         a = sigmoid(np.matmul(theta,A[i]))
         if i < len(Theta) -1:
             a = np.append([1], a) # add in the bias unit on every layer 
@@ -54,7 +65,7 @@ def forward_prop(Theta, x_train):
 def back_prop(Theta, x_train, y_train):
     A = forward_prop(Theta, x_train)
     last_delta = A[-1] - y_train # delta of the output layer
-    Delta = list() # empty list to hold delta (cap.delta)
+    Delta = list() # empty list to hold delta (cap. delta)
     for k in range(len(Theta)):
         previous_a = A[-1 - (k + 1)]# lose the bias
         if not k == 0: #except for output layer, lose the bias
@@ -82,7 +93,7 @@ def cost_function(Theta, X_train, Y_train, lam):
     
     return J
 
-def gradient_function(Theta,X_train, Y_train):
+def gradient_function(Theta,X_train, Y_train, lam):
     m = float(X_train.shape[0]) # number of training samples
     
     # Loop for backprop, turned into a mess
@@ -98,17 +109,20 @@ def gradient_function(Theta,X_train, Y_train):
             Delta[j] = Delta[j] + temp_Delta[j]
 
     # Dont regularize the bais weights
-    reg_theta = make_reg_Theta(Theta)
+    reg_Theta = make_reg_Theta(Theta)
 
     # Unroll reg_Theta and Delta (horizontal first, then vertical)
     # note that they are the same size list
     # each element of the two lists is a matrix, and the matrix 
     # sizes correspond between the lists as well
-    unrolled_reg_Theta = np.array()
-    unrolled_Delta = np.array()
-    for i in range(len(Delta)):
-        reg_Theta[i] = reg_Theta[i].flatten()
-        Delta[i] = Delta[i].flatten()
+    unrolled_reg_Theta = unroll_np_list(reg_Theta)
+    unrolled_Delta = unroll_np_list(Delta)
+
+    D = (1/m)*unrolled_Delta + (lam/m) * unrolled_reg_Theta # gradient
+    return D
+
+
+        
     
 
         

@@ -2,15 +2,20 @@ import numpy as np
 import pandas as pd
 import nn_functions as nf
 from nn_functions import sigmoid
+from scipy.optimize import minimize
 
 #..................................................#
 # Decide on Neural Network Parameters
-hl = [20,10] # hidden layers (eg. [10,10] means 2 layers, 10 units each)
+hl = [10,10] # hidden layers (eg. [10,10] means 2 layers, 10 units each)
 lam = 1e-5
 number_output_class = 10
 
 # Import our MNIST test data
 train_df = pd.read_csv('Data/train.csv')
+######## TEMPORARY!!!!! 
+train_df = train_df.drop(np.arange(100,42000), axis=0)
+
+
 m = float(train_df.shape[0]) # number of training samples
 
 
@@ -32,10 +37,24 @@ for i in range(len(l) - 1):
 
 #Delta =nf.back_prop(Theta, X_train[1,:], y_train)
 
-J = nf.cost_function(Theta,X_train,Y_train, lam)
+#J = nf.cost_function(Theta,X_train,Y_train, lam)
 #A = nf.forward_prop(Theta,X_train[0,:])
 
-nf.gradient_function(Theta,X_train,Y_train)
+#D = nf.gradient_function(Theta,X_train,Y_train, lam)
+
+unrolled_Theta = nf.unroll_np_list(Theta)
+
+#print D.shape
+#print unrolled_Theta.shape
+
+# lambda functions for the minimizer
+cost = lambda var_theta: nf.cost_function(var_theta,X_train,Y_train,lam)
+grad = lambda var_theta: nf.gradient_function(var_theta,X_train,Y_train,lam)
+
+
+sol = minimize(cost, unrolled_Theta, method = 'BFGS',\
+               jac = grad, options={'disp': True})
+
 
     
 
