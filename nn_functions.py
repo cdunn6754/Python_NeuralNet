@@ -19,6 +19,20 @@ def unroll_np_list(list1):
         unrolled_list1 = np.hstack((unrolled_list1, list1[i].flatten()))
     unrolled_list1 = np.delete(unrolled_list1, 0, 0) # get rid of dummy
     return unrolled_list1
+
+def reroll_np_list(nparray,mat_sizes):
+    index = 0 # keep track of where we are in the nparray
+    unrolled_nparray = list()
+    for i in range(len(mat_sizes)):
+        n = mat_sizes[i][0] # num of rows
+        m = mat_sizes[i][1] # num of cols
+        mat = np.reshape(nparray[index:index + n*m],(n,m))
+        unrolled_nparray.append(mat)
+        index = index + n*m
+    return unrolled_nparray
+        
+        
+        
         
 
 # unroll the solution vector into matrix of one-hot vectors
@@ -36,7 +50,6 @@ def h_theta(Theta, X_train):
     h = np.hstack((np.ones((X_train.shape[0],1)), X_train)) #add bias
     h = np.transpose(h)
     for i in range(len(Theta)):
-        print ("Iteration %s in the h_theta loop" %i)
         h = np.matmul(Theta[i],h)
         h = sigmoid(h)
         if i < (len(Theta) -1): # add bias but not to the final output
@@ -53,8 +66,6 @@ def forward_prop(Theta, x_train):
     # loop through layers but do so for every training example at once
     for i in range(len(Theta)):
         theta = Theta[i]
-        print( 'This is theta:')
-        print theta
         a = sigmoid(np.matmul(theta,A[i]))
         if i < len(Theta) -1:
             a = np.append([1], a) # add in the bias unit on every layer 
@@ -77,7 +88,8 @@ def back_prop(Theta, x_train, y_train):
 
     return Delta
 
-def cost_function(Theta, X_train, Y_train, lam):
+def cost_function(unrolled_Theta, X_train, Y_train, lam,Theta_sizes):
+    Theta = reroll_np_list(unrolled_Theta, Theta_sizes)
     m = float(X_train.shape[0]) # # of training examples
     h = h_theta(Theta, X_train) # returns matrix of h(theta) in shape 
                                 # [output features, training examples]
@@ -93,7 +105,9 @@ def cost_function(Theta, X_train, Y_train, lam):
     
     return J
 
-def gradient_function(Theta,X_train, Y_train, lam):
+
+def gradient_function(unrolled_Theta,X_train, Y_train, lam, Theta_sizes):
+    Theta = reroll_np_list(unrolled_Theta, Theta_sizes)
     m = float(X_train.shape[0]) # number of training samples
     
     # Loop for backprop, turned into a mess
@@ -104,6 +118,7 @@ def gradient_function(Theta,X_train, Y_train, lam):
     Delta = back_prop(Theta,X_train[0,:],Y_train[:,0])
     trials = np.arange(1,int(m)-1) # go through trials excluding the first one
     for i in trials:
+        print ('Working on trial number %s' %(str(i)))
         temp_Delta = back_prop(Theta,X_train[i,:], Y_train[:,i])
         for j in range(len(Delta)): # go through all matrices in Delta
             Delta[j] = Delta[j] + temp_Delta[j]
