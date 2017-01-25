@@ -45,6 +45,7 @@ Theta_sizes = list() # list of Theta shapes so it can be re-rolled
 for i in range(len(Theta)):
     Theta_sizes.append(Theta[i].shape)
 
+# Unroll theta
 unrolled_Theta = nf.unroll_np_list(Theta)
 
 
@@ -57,9 +58,33 @@ exit()
 cost = lambda var_theta: nf.cost_function(var_theta,X_train,Y_train,lam, Theta_sizes)
 grad = lambda var_theta: nf.gradient_function(var_theta,X_train,Y_train,lam,Theta_sizes)
 
+# Gradient checking
+eps = 1.0e-4
+ind = 34
+plus_Theta = np.copy(unrolled_Theta)
+plus_Theta[ind] = plus_Theta[ind] + eps
+min_Theta = np.copy(unrolled_Theta)
+min_Theta[ind] = min_Theta[ind] - eps
 
-sol = minimize(cost, unrolled_Theta, method = 'BFGS',\
+print min_Theta[ind]
+print plus_Theta[ind]
+print unrolled_Theta[ind]
+
+num_grad = (cost(plus_Theta) - cost(min_Theta))/(2.0 * eps)
+
+any_grad = grad(unrolled_Theta)[ind]
+
+
+print cost(plus_Theta)
+print cost(min_Theta)
+print num_grad
+print any_grad
+exit()
+
+sol = minimize(cost, unrolled_Theta, method = 'CG',\
                jac = grad, options={'disp': True})
+
+print sol
 
 
     
