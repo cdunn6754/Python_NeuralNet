@@ -118,7 +118,7 @@ def gradient_function(unrolled_Theta,X_train, Y_train, lam, Theta_sizes):
     Delta = back_prop(Theta,X_train[0,:],Y_train[:,0])
     trials = np.arange(1,int(m)-1) # go through trials excluding the first one
     for i in trials:
-        print ('Working on trial number %s' %(str(i)))
+        #print ('Working on trial number %s' %(str(i)))
         temp_Delta = back_prop(Theta,X_train[i,:], Y_train[:,i])
         for j in range(len(Delta)): # go through all matrices in Delta
             Delta[j] = Delta[j] + temp_Delta[j]
