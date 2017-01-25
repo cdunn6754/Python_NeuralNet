@@ -40,13 +40,18 @@ for i in range(len(l) - 1):
 #J = nf.cost_function(Theta,X_train,Y_train, lam)
 #A = nf.forward_prop(Theta,X_train[0,:])
 
-#D = nf.gradient_function(Theta,X_train,Y_train, lam)
 
 Theta_sizes = list() # list of Theta shapes so it can be re-rolled
 for i in range(len(Theta)):
     Theta_sizes.append(Theta[i].shape)
 
 unrolled_Theta = nf.unroll_np_list(Theta)
+
+
+D = nf.gradient_function(unrolled_Theta,X_train,Y_train,lam,Theta_sizes)
+print D
+print len(D)
+exit()
 
 # lambda functions for the minimizer
 cost = lambda var_theta: nf.cost_function(var_theta,X_train,Y_train,lam, Theta_sizes)

@@ -20,6 +20,7 @@ def unroll_np_list(list1):
     unrolled_list1 = np.delete(unrolled_list1, 0, 0) # get rid of dummy
     return unrolled_list1
 
+# Reroll 1d array into list of np arrays
 def reroll_np_list(nparray,mat_sizes):
     index = 0 # keep track of where we are in the nparray
     unrolled_nparray = list()
@@ -30,10 +31,6 @@ def reroll_np_list(nparray,mat_sizes):
         unrolled_nparray.append(mat)
         index = index + n*m
     return unrolled_nparray
-        
-        
-        
-        
 
 # unroll the solution vector into matrix of one-hot vectors
 # returns them in matrix shape [outputclasses, number of training examples]
