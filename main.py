@@ -54,17 +54,25 @@ cost = lambda var_theta: nf.cost_function(var_theta,X_train,Y_train,lam, Theta_s
 grad = lambda var_theta: nf.gradient_function(var_theta,X_train,Y_train,lam,Theta_sizes)
 
 
+unrolled_Theta[1] = unrolled_Theta[1]
+print cost(unrolled_Theta)
+
+unrolled_Theta[1] = unrolled_Theta[1] + 10
+print cost(unrolled_Theta)
+exit() 
+
 # Gradient checking
-eps = 3.0e-5
+eps = 1.0e-8
 analyt_grad = grad(unrolled_Theta)
 num_grad = np.zeros(len(analyt_grad))
 for i in range(len(unrolled_Theta)):
-    plus_Theta = np.copy(unrolled_Theta) + eps
-    min_Theta = np.copy(unrolled_Theta) - eps
-    num_grad = (cost(plus_Theta) - cost(min_Theta))/(2.0 * eps)
-    print num_grad
+    plus_Theta = np.copy(unrolled_Theta)
+    plus_Theta[i] = plus_Theta[i] + eps
+    min_Theta = np.copy(unrolled_Theta)
+    min_Theta[i] = min_Theta[i] - eps 
+    num_grad[i] = (cost(plus_Theta) - cost(min_Theta))/(2.0 * eps)
 
-print np.linalg.norm(num_grad)
+print num_grad
 print np.linalg.norm(analyt_grad)
 print abs(analyt_grad - num_grad)
 exit()

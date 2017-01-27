@@ -48,7 +48,6 @@ def h_theta(Theta, X_train):
     # Add bias
     h = np.hstack((np.ones((X_train.shape[0],1)), X_train)) 
     h = np.transpose(h)
-    print( h.shape)
     for i in range(len(Theta)):
         h = np.matmul(Theta[i],h)
         h = sigmoid(h)
