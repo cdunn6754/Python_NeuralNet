@@ -6,7 +6,7 @@ from scipy.optimize import minimize
 
 #..................................................#
 # Decide on Neural Network Parameters
-hl = [10,10] # hidden layers (eg. [10,10] means 2 layers, 10 units each)
+hl = [5] # hidden layers (eg. [10,10] means 2 layers, 10 units each)
 lam = 1e-5
 number_output_class = 10
 
@@ -58,27 +58,28 @@ exit()
 cost = lambda var_theta: nf.cost_function(var_theta,X_train,Y_train,lam, Theta_sizes)
 grad = lambda var_theta: nf.gradient_function(var_theta,X_train,Y_train,lam,Theta_sizes)
 
+
+unrolled_Theta[1] = unrolled_Theta[1]
+print cost(unrolled_Theta)
+
+unrolled_Theta[1] = unrolled_Theta[1] + 10
+print cost(unrolled_Theta)
+exit() 
+
 # Gradient checking
-eps = 1.0e-4
-ind = 34
-plus_Theta = np.copy(unrolled_Theta)
-plus_Theta[ind] = plus_Theta[ind] + eps
-min_Theta = np.copy(unrolled_Theta)
-min_Theta[ind] = min_Theta[ind] - eps
+eps = 1.0e-8
+analyt_grad = grad(unrolled_Theta)
+num_grad = np.zeros(len(analyt_grad))
+for i in range(len(unrolled_Theta)):
+    plus_Theta = np.copy(unrolled_Theta)
+    plus_Theta[i] = plus_Theta[i] + eps
+    min_Theta = np.copy(unrolled_Theta)
+    min_Theta[i] = min_Theta[i] - eps 
+    num_grad[i] = (cost(plus_Theta) - cost(min_Theta))/(2.0 * eps)
 
-print min_Theta[ind]
-print plus_Theta[ind]
-print unrolled_Theta[ind]
-
-num_grad = (cost(plus_Theta) - cost(min_Theta))/(2.0 * eps)
-
-any_grad = grad(unrolled_Theta)[ind]
-
-
-print cost(plus_Theta)
-print cost(min_Theta)
 print num_grad
-print any_grad
+print np.linalg.norm(analyt_grad)
+print abs(analyt_grad - num_grad)
 exit()
 
 sol = minimize(cost, unrolled_Theta, method = 'CG',\

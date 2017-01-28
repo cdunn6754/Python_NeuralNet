@@ -20,11 +20,7 @@ def unroll_np_list(list1):
     unrolled_list1 = np.delete(unrolled_list1, 0, 0) # get rid of dummy
     return unrolled_list1
 
-<<<<<<< HEAD
-# Reroll 1d array into list of np arrays
-=======
 # Reroll the np array in to a list of np matrices
->>>>>>> 38581d6ae3ffb5b93f59decee044334edd5a15fe
 def reroll_np_list(nparray,mat_sizes):
     index = 0 # keep track of where we are in the nparray
     unrolled_nparray = list()
@@ -35,10 +31,7 @@ def reroll_np_list(nparray,mat_sizes):
         unrolled_nparray.append(mat)
         index = index + n*m
     return unrolled_nparray
-<<<<<<< HEAD
-=======
         
->>>>>>> 38581d6ae3ffb5b93f59decee044334edd5a15fe
 
 # unroll the solution vector into matrix of one-hot vectors
 # returns them in matrix shape [outputclasses, number of training examples]
@@ -55,7 +48,6 @@ def h_theta(Theta, X_train):
     # Add bias
     h = np.hstack((np.ones((X_train.shape[0],1)), X_train)) 
     h = np.transpose(h)
-    print( h.shape)
     for i in range(len(Theta)):
         h = np.matmul(Theta[i],h)
         h = sigmoid(h)
