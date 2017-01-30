@@ -20,11 +20,7 @@ def unroll_np_list(list1):
     unrolled_list1 = np.delete(unrolled_list1, 0, 0) # get rid of dummy
     return unrolled_list1
 
-<<<<<<< HEAD
-# Reroll 1d array into list of np arrays
-=======
 # Reroll the np array in to a list of np matrices
->>>>>>> 38581d6ae3ffb5b93f59decee044334edd5a15fe
 def reroll_np_list(nparray,mat_sizes):
     index = 0 # keep track of where we are in the nparray
     unrolled_nparray = list()
@@ -35,34 +31,33 @@ def reroll_np_list(nparray,mat_sizes):
         unrolled_nparray.append(mat)
         index = index + n*m
     return unrolled_nparray
-<<<<<<< HEAD
-=======
-        
->>>>>>> 38581d6ae3ffb5b93f59decee044334edd5a15fe
 
-# unroll the solution vector into matrix of one-hot vectors
+# unroll the solution vector into matrix of one-hot vectors for number recognition
 # returns them in matrix shape [outputclasses, number of training examples]
+# an entry of 10 will be mapped to 0 i.e. [1,0,0,...,0]
 def one_hot(vec, num_classes):
+    # we need 10 == 0
+    for i in range(len(vec)):
+        vec[i] = vec[i] - 1.0
+
     t_examples = len(vec)  #training examples
     one_hot_mat = np.zeros([t_examples, num_classes]) 
     column_start_index = np.arange(t_examples) * num_classes
-    one_hot_mat.flat[column_start_index + vec.ravel()] = 1
+    one_hot_mat.flat[column_start_index + vec.ravel()] = 1.0
     return np.transpose(one_hot_mat)
 
 # Forward prop for cost function that can run n training examples simultaneously
 # and returns only the output of the nn, not every activation
 def h_theta(Theta, X_train):
-    # Add bias
+    # Add bias to input layer
     h = np.hstack((np.ones((X_train.shape[0],1)), X_train)) 
     h = np.transpose(h)
-    print( h.shape)
     for i in range(len(Theta)):
         h = np.matmul(Theta[i],h)
         h = sigmoid(h)
-        if i < (len(Theta) -1): # add bias but not to the final output
+        if i < (len(Theta) -1): # add bias to every layer except the final output
             h = np.vstack((np.ones((1,h.shape[1])),h))
     return h
-
 
 # Forward prop for use with backprop (one training example at a time)
 def forward_prop(Theta, x_train):
@@ -95,7 +90,7 @@ def back_prop(Theta, x_train, y_train):
 
     return Delta
 
-def cost_function(unrolled_Theta, X_train, Y_train, lam,Theta_sizes):
+def cost_function(unrolled_Theta, X_train, Y_train, lam, Theta_sizes):
     Theta = reroll_np_list(unrolled_Theta, Theta_sizes)
     m = float(X_train.shape[0]) # # of training examples
     h = h_theta(Theta, X_train) # returns matrix of h(theta) in shape 
@@ -111,6 +106,32 @@ def cost_function(unrolled_Theta, X_train, Y_train, lam,Theta_sizes):
         + (lam/(2*m)) * reg
     
     return J
+
+# TESTING
+def cost_function_2(unrolled_Theta, X_train, Y_train, lam, Theta_sizes):
+    Theta = reroll_np_list(unrolled_Theta, Theta_sizes)
+    m = float(X_train.shape[0]) # # of training examples
+
+    h = np.hstack((np.ones((X_train.shape[0],1)), X_train)) 
+    h = np.transpose(h)
+    h_out = np.zeros((10,int(m)))
+    print Y_train.shape
+
+    J = 0    
+    for i in range(len(X_train[:,0])):
+        a1 = h[:,i];
+        z2 = np.matmul(Theta[0],a1)
+        a2 = sigmoid(z2)
+        a2 = np.insert(a2,0,1.0)
+        z3 = np.matmul(Theta[1],a2)
+        a3 = sigmoid(z3)
+
+        y = Y_train[:,i]
+        print(y)
+        J = J + sum(-y * np.log(a3) - (1 - y)*np.log(1 - a3))
+        exit()
+
+    return (1/m)*J
 
 
 def gradient_function(unrolled_Theta,X_train, Y_train, lam, Theta_sizes):
