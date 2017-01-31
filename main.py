@@ -7,9 +7,9 @@ import scipy.io
 
 #..................................................#
 # Decide on Neural Network Parameters
-hl = [25] # hidden layers (eg. [10,10] means 2 layers, 10 units each)
-lam = 1
-number_output_class = 10
+hl = [5] # hidden layers (eg. [10,10] means 2 layers, 10 units each)
+lam = 0
+number_output_class = 3#10
 
 if 1 == 0:
     # Import our MNIST test data
@@ -36,6 +36,23 @@ if 1 == 0:
     for i in range(len(l) - 1):
         theta_2d = (np.random.rand(l[i+1], l[i] + 1) - .5)/10
         Theta.append(theta_2d)
+elif 1 ==1:
+    input_layer_size = 3
+    hidden_layer_size = 5
+    num_labels = 3
+    m = 5
+
+    # We generate some 'random' test data
+    Theta1 = nf.debugInitializeWeights(hidden_layer_size, input_layer_size)
+    Theta2 = nf.debugInitializeWeights(num_labels, hidden_layer_size)
+    # Reusing debugInitializeWeights to generate X
+    X_train  = nf.debugInitializeWeights(m, input_layer_size - 1)
+    y  = np.array([2,3,1,2,3]) #1 + mod(1:m, num_labels)'
+    Y_train = nf.one_hot(y,number_output_class)
+    #print(' norms are: %f, %f, %f, %f' %(np.linalg.norm(Theta1,2), np.linalg.norm(Theta2,2), \
+     #                                    np.linalg.norm(X,2), np.linalg.norm(y,2)))
+    Theta = [Theta1, Theta2]
+
 else:
     # MATLAB STUFF
     # Getting theta
@@ -58,26 +75,35 @@ for i in range(len(Theta)):
 unrolled_Theta = nf.unroll_np_list(Theta)
 
 # Testing
-# J = nf.cost_function(unrolled_Theta, X_train, Y_train, lam, Theta_sizes)
-# print J
+J = nf.cost_function(unrolled_Theta, X_train, Y_train, lam, Theta_sizes)
+print J
 
 # lambda functions for the minimizer
 cost = lambda var_theta: nf.cost_function(var_theta,X_train,Y_train,lam, Theta_sizes)
 grad = lambda var_theta: nf.gradient_function(var_theta,X_train,Y_train,lam,Theta_sizes)
 
 # Gradient checking
-eps = 1.0e-8
+epsilon = 1.0e-4
 analyt_grad = grad(unrolled_Theta)
 num_grad = np.zeros(len(analyt_grad))
 print('Calculating numerical gradient')
+perturb = np.zeros(len(num_grad))
 for i in range(len(unrolled_Theta)):
-    plus_Theta = np.copy(unrolled_Theta)
-    plus_Theta[i] = plus_Theta[i] + eps
-    min_Theta = np.copy(unrolled_Theta)
-    min_Theta[i] = min_Theta[i] - eps 
-    num_grad[i] = (cost(plus_Theta) - cost(min_Theta))/(2.0 * eps)
+    if i % 50 == 0:
+        print( 'We are on Theta value %f' %float(i))
+    perturb[i] = epsilon
+    plus = cost(unrolled_Theta + perturb)
+    minus = cost(unrolled_Theta - perturb)
+    print plus
+    print minus
+    print nf.cost_function(unrolled_Theta, X_train, Y_train, lam, Theta_sizes)
+    exit()
+    num_grad[i] = (plus - minus) / (2.0 * epsilon)
+    perturb[i] = 0.0
 
 print np.linalg.norm(analyt_grad - num_grad)/np.linalg.norm(analyt_grad+num_grad)
+print num_grad
+print analyt_grad
 exit()
 
 sol = minimize(cost, unrolled_Theta, method = 'CG',\

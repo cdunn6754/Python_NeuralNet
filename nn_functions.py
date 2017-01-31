@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 def sigmoid(z):
     return 1/(1 + np.e ** -z)
 
-# get rid of the bias weigthts in theta_vector (set them to 0)
+# get rid of the bias weights in theta_vector (set them to 0)
 def make_reg_Theta(Theta):
-    reg_Theta = Theta
+    reg_Theta = np.copy(Theta)
     for i in range(len(Theta)):
         reg_Theta[i][:,0] = 0
     return reg_Theta
@@ -137,7 +137,7 @@ def cost_function_2(unrolled_Theta, X_train, Y_train, lam, Theta_sizes):
 def gradient_function(unrolled_Theta,X_train, Y_train, lam, Theta_sizes):
     Theta = reroll_np_list(unrolled_Theta, Theta_sizes)
     m = float(X_train.shape[0]) # number of training samples
-    
+
     # Loop for backprop, turned into a mess
     # Have to do the first one out of loop to get the list going
     # then do nested loops to add matrices from other training examples to 
@@ -152,7 +152,13 @@ def gradient_function(unrolled_Theta,X_train, Y_train, lam, Theta_sizes):
             Delta[j] = Delta[j] + temp_Delta[j]
 
     # Dont regularize the bais weights
-    reg_Theta = make_reg_Theta(Theta)
+    #reg_Theta = make_reg_Theta(np.copy(Theta))
+    reg_Theta = np.copy(Theta)
+    for i in range(len(reg_Theta)):
+        unrolled_Theta = unroll_np_list(Theta)
+        print ('The cost is now! %f' %cost_function(unrolled_Theta,X_train,Y_train,lam, Theta_sizes))
+        exit()
+        reg_Theta[i][:,0] = 0
 
     # Unroll reg_Theta and Delta (horizontal first, then vertical)
     # note that they are the same size list
@@ -163,6 +169,14 @@ def gradient_function(unrolled_Theta,X_train, Y_train, lam, Theta_sizes):
 
     D = (1/m)*unrolled_Delta + (lam/m) * unrolled_reg_Theta # gradient
     return D
+
+def debugInitializeWeights(fan_out, fan_in):
+    W = np.zeros((fan_out, 1 + fan_in))
+    W = np.reshape(np.sin(np.arange(np.size(W)) + 1), W.shape, order='F') /10.0
+    #print(W)
+    #exit()
+    return W
+            
 
 
         
