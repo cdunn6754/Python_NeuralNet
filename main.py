@@ -97,7 +97,6 @@ for i in range(len(unrolled_Theta)):
     print plus
     print minus
     print nf.cost_function(unrolled_Theta, X_train, Y_train, lam, Theta_sizes)
-    exit()
     num_grad[i] = (plus - minus) / (2.0 * epsilon)
     perturb[i] = 0.0
 

@@ -7,9 +7,16 @@ def sigmoid(z):
 
 # get rid of the bias weights in theta_vector (set them to 0)
 def make_reg_Theta(Theta):
-    reg_Theta = np.copy(Theta)
+    # make a copy of Theta (seems complicated but there was a bad bug
+    # when using reg_Theta = Theta or np.copy(Theta) even. It 
+    # just passed Theta by ref instead of making a copy
+    reg_Theta = list()
     for i in range(len(Theta)):
+        reg_Theta.append(np.copy(Theta[i]))
+    # Set weights for bias units to zero
+    for i in range(len(reg_Theta)):
         reg_Theta[i][:,0] = 0
+    
     return reg_Theta
 
 # Unroll a list of np arrays
@@ -144,21 +151,18 @@ def gradient_function(unrolled_Theta,X_train, Y_train, lam, Theta_sizes):
     # the running sum
     print ('Calculating gradients')
     Delta = back_prop(Theta,X_train[0,:],Y_train[:,0])
-    trials = np.arange(1,int(m)-1) # go through trials excluding the first one
+    print ('First Delta')
+    print np.linalg.norm(Delta[0],2)
+    trials = np.arange(1,int(m)) # go through trials excluding the first one
     for i in trials:
         #print ('Working on trial number %s' %(str(i)))
         temp_Delta = back_prop(Theta,X_train[i,:], Y_train[:,i])
         for j in range(len(Delta)): # go through all matrices in Delta
             Delta[j] = Delta[j] + temp_Delta[j]
+        print np.linalg.norm(Delta[0],2)
 
     # Dont regularize the bais weights
-    #reg_Theta = make_reg_Theta(np.copy(Theta))
-    reg_Theta = np.copy(Theta)
-    for i in range(len(reg_Theta)):
-        unrolled_Theta = unroll_np_list(Theta)
-        print ('The cost is now! %f' %cost_function(unrolled_Theta,X_train,Y_train,lam, Theta_sizes))
-        exit()
-        reg_Theta[i][:,0] = 0
+    reg_Theta = make_reg_Theta(Theta)
 
     # Unroll reg_Theta and Delta (horizontal first, then vertical)
     # note that they are the same size list
