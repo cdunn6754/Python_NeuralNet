@@ -5,6 +5,10 @@ import matplotlib.pyplot as plt
 def sigmoid(z):
     return 1/(1 + np.e ** -z)
 
+#softmax
+def softmax(z):
+    return (np.e**(z)) / np.sum(np.e**(z))
+
 # get rid of the bias weights in theta_vector (set them to 0)
 def make_reg_Theta(Theta):
     # make a copy of Theta (seems complicated but there was a bad bug
@@ -41,9 +45,9 @@ def reroll_np_list(nparray,mat_sizes):
 
 # unroll the solution vector into matrix of one-hot vectors for number recognition
 # returns them in matrix shape [outputclasses, number of training examples]
-# an entry of 10 will be mapped to 0 i.e. [1,0,0,...,0]
+# an entry of 10 will be mapped to 9 i.e. [0,0,0,...,1], and everyting else is
+# down one too
 def one_hot(vec, num_classes):
-    # we need 10 == 0
     for i in range(len(vec)):
         vec[i] = vec[i] - 1.0
 
@@ -61,9 +65,14 @@ def h_theta(Theta, X_train):
     h = np.transpose(h)
     for i in range(len(Theta)):
         h = np.matmul(Theta[i],h)
-        h = sigmoid(h)
+        if not i < (len(Theta) - 1):
+            h = sigmoid(h)
+        else:
+            h = sigmoid(h)
         if i < (len(Theta) -1): # add bias to every layer except the final output
             h = np.vstack((np.ones((1,h.shape[1])),h))
+    print np.max(h)
+    print np.sum(h)
     return h
 
 # Forward prop for use with backprop (one training example at a time)
@@ -111,7 +120,7 @@ def cost_function(unrolled_Theta, X_train, Y_train, lam, Theta_sizes):
     # Compute the Cost function J
     J = (1/m) * sum(sum(-Y_train * np.log(h) - (1 - Y_train) * np.log(1 - h))) \
         + (lam/(2*m)) * reg
-    
+    print J
     return J
 
 # TESTING
@@ -151,15 +160,12 @@ def gradient_function(unrolled_Theta,X_train, Y_train, lam, Theta_sizes):
     # the running sum
     print ('Calculating gradients')
     Delta = back_prop(Theta,X_train[0,:],Y_train[:,0])
-    print ('First Delta')
-    print np.linalg.norm(Delta[0],2)
     trials = np.arange(1,int(m)) # go through trials excluding the first one
     for i in trials:
         #print ('Working on trial number %s' %(str(i)))
         temp_Delta = back_prop(Theta,X_train[i,:], Y_train[:,i])
         for j in range(len(Delta)): # go through all matrices in Delta
             Delta[j] = Delta[j] + temp_Delta[j]
-        print np.linalg.norm(Delta[0],2)
 
     # Dont regularize the bais weights
     reg_Theta = make_reg_Theta(Theta)
@@ -180,6 +186,29 @@ def debugInitializeWeights(fan_out, fan_in):
     #print(W)
     #exit()
     return W
+
+def gradient_checking(unrolled_Theta):
+    epsilon = 1.0e-5
+    analyt_grad = grad(unrolled_Theta)
+    num_grad = np.zeros(len(analyt_grad))
+    print('Calculating numerical gradient')
+    perturb = np.zeros(len(num_grad))
+    for i in range(len(unrolled_Theta)):
+        if i % 50 == 0:
+            print( 'We are on Theta value %f' %float(i))
+            perturb[i] = epsilon
+            plus = cost(unrolled_Theta + perturb)
+            minus = cost(unrolled_Theta - perturb)
+            num_grad[i] = (plus - minus) / (2.0 * epsilon)
+            perturb[i] = 0.0
+
+        diff = np.linalg.norm(analyt_grad - num_grad)/np.linalg.norm(analyt_grad+num_grad)
+        print('Scaled difference %f' %diff)
+        print('Numerical Gradient:')
+        print num_grad
+        print('Back prop Gradient:')
+        print analyt_grad
+
             
 
 

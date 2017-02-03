@@ -1,0 +1,19 @@
+import numpy as np
+import pandas as pd
+import nn_functions as nf
+from nn_functions import sigmoid
+from scipy.optimize import minimize
+import scipy.io
+
+#..........................................#
+# Import weight and testing data
+
+# Weights
+unrolled_Theta = np.loadtxt('weights')
+print np.linalg.norm(unrolled_Theta,2)
+
+# Test data
+test_df = pd.read_csv('Data/test.csv')
+X_test = np.array(test_df)
+Y_test = np.array(test_df['label'])
+print Y_test
