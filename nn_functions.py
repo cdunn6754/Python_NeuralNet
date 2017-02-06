@@ -7,7 +7,11 @@ def sigmoid(z):
 
 #softmax
 def softmax(z):
-    return (np.e**(z)) / np.sum(np.e**(z))
+    print ('Using Softmax')
+    output = np.zeros(z.shape)
+    for i in range(len(z[0,:])):
+        output[:,i] = np.e**(z[:,i]) / np.sum(np.e**(z[:,i]))
+    return (output)
 
 # get rid of the bias weights in theta_vector (set them to 0)
 def make_reg_Theta(Theta):
@@ -49,7 +53,7 @@ def reroll_np_list(nparray,mat_sizes):
 # down one too
 def one_hot(vec, num_classes):
     for i in range(len(vec)):
-        vec[i] = vec[i] - 1.0
+        vec[i] = vec[i]
 
     t_examples = len(vec)  #training examples
     one_hot_mat = np.zeros([t_examples, num_classes]) 
@@ -57,22 +61,35 @@ def one_hot(vec, num_classes):
     one_hot_mat.flat[column_start_index + vec.ravel()] = 1.0
     return np.transpose(one_hot_mat)
 
+def reverse_one_hot(vec_oh):
+    output = np.zeros(len(vec_oh[0,:]))
+    for i in range(len(output)):
+        output[i] = np.argmax(vec_oh[:,i])
+    return output
+
 # Forward prop for cost function that can run n training examples simultaneously
 # and returns only the output of the nn, not every activation
+# returns of form (#training examples, # units in output layer)
 def h_theta(Theta, X_train):
     # Add bias to input layer
     h = np.hstack((np.ones((X_train.shape[0],1)), X_train)) 
     h = np.transpose(h)
     for i in range(len(Theta)):
         h = np.matmul(Theta[i],h)
-        if not i < (len(Theta) - 1):
-            h = sigmoid(h)
+        if i ==  (len(Theta) - 1):
+            h = sigmoid(h)#sigmoid(h)
         else:
             h = sigmoid(h)
         if i < (len(Theta) -1): # add bias to every layer except the final output
             h = np.vstack((np.ones((1,h.shape[1])),h))
-    print np.max(h)
-    print np.sum(h)
+
+    # Stop values from getting too small
+    for i in range(len(h[0,:])):
+        for j in range(len(h[:,0])):
+            if h[j,i] <= 1e-20:
+                h[j,i] = 1e-20
+            if h[j,i] >= 1.0:
+                h[j,i] = 0.99999999999
     return h
 
 # Forward prop for use with backprop (one training example at a time)
@@ -111,44 +128,25 @@ def cost_function(unrolled_Theta, X_train, Y_train, lam, Theta_sizes):
     m = float(X_train.shape[0]) # # of training examples
     h = h_theta(Theta, X_train) # returns matrix of h(theta) in shape 
                                 # [output features, training examples]
-    
+    n = 234
+    print h.shape
+    print (h[:,n])
+    print( 'Minimum value from h(theta)', np.min(h))
+    print( 'Maximum value from h(theta)', np.max(h))
+    print( 'Flattened index = %d' %np.argmin(h))
+    print Y_train[:,n]
+
     # Regularlization
     reg = 0
     for theta in Theta:
         reg = sum(sum(theta[:,1:]**2)) + reg
 
     # Compute the Cost function J
-    J = (1/m) * sum(sum(-Y_train * np.log(h) - (1 - Y_train) * np.log(1 - h))) \
-        + (lam/(2*m)) * reg
+    J = (1/m) * np.sum(-Y_train * np.log(h) - (1 - Y_train) * np.log(1 - h)) #\
+        #+ (lam/(2*m)) * reg
+    #J = -np.sum(np.sum(Y_train * np.log(h)))
     print J
     return J
-
-# TESTING
-def cost_function_2(unrolled_Theta, X_train, Y_train, lam, Theta_sizes):
-    Theta = reroll_np_list(unrolled_Theta, Theta_sizes)
-    m = float(X_train.shape[0]) # # of training examples
-
-    h = np.hstack((np.ones((X_train.shape[0],1)), X_train)) 
-    h = np.transpose(h)
-    h_out = np.zeros((10,int(m)))
-    print Y_train.shape
-
-    J = 0    
-    for i in range(len(X_train[:,0])):
-        a1 = h[:,i];
-        z2 = np.matmul(Theta[0],a1)
-        a2 = sigmoid(z2)
-        a2 = np.insert(a2,0,1.0)
-        z3 = np.matmul(Theta[1],a2)
-        a3 = sigmoid(z3)
-
-        y = Y_train[:,i]
-        print(y)
-        J = J + sum(-y * np.log(a3) - (1 - y)*np.log(1 - a3))
-        exit()
-
-    return (1/m)*J
-
 
 def gradient_function(unrolled_Theta,X_train, Y_train, lam, Theta_sizes):
     Theta = reroll_np_list(unrolled_Theta, Theta_sizes)

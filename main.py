@@ -7,23 +7,33 @@ import scipy.io
 
 #..................................................#
 # Decide on Neural Network Parameters
-hl = [5] # hidden layers (eg. [10,10] means 2 layers, 10 units each)
-lam =1.0
+hl = [100,10] # hidden layers (eg. [10,10] means 2 layers, 10 units each)
+lam =0
 number_output_class = 10
 
-if 1 == 0:
+matlab = 0
+
+if not matlab:
     # Import our MNIST test data
     train_df = pd.read_csv('Data/train.csv')
     ######## TEMPORARY!!!!! 
-    #train_df = train_df.drop(np.arange(100,42000), axis=0)
+    train_df = train_df.drop(np.arange(1000,42000), axis=0)
 
     m = float(train_df.shape[0]) # number of training samples
     print('Number of training examples: %f' %m)
 
     # Transfer to numpy arrays
-    X_train = np.array(train_df.drop(['label'], axis=1))
+    X_train = np.array(train_df.drop(['label'], axis=1)) 
+    X_train = X_train / np.std(X_train)
+    X_train = X_train - np.mean(X_train)
     Y_train = np.array(train_df['label'])
     Y_train = nf.one_hot(Y_train,number_output_class)
+
+
+    # print X_train[0,:]
+    # print np.min(X_train)
+    # print np.max(X_train)
+    # exit()
 
     # l is a vector which describes the number of units in all layers of the nn
     l = np.append( [np.ma.shape(X_train)[1]], np.append(hl, [number_output_class])) 
@@ -33,39 +43,48 @@ if 1 == 0:
     # the matrices have shape [# units next layer, # units previous layer]
     Theta = []    
     for i in range(len(l) - 1):
-        theta_2d = (np.random.rand(l[i+1], l[i] + 1) - .5)/10
+        theta_2d = (np.random.rand(l[i+1], l[i] + 1)*2 - 0.5)
         Theta.append(theta_2d)
-elif 1 ==0:
-    input_layer_size = 3
-    hidden_layer_size = 5
-    num_labels = 3
-    m = 5
 
-    # We generate some 'random' test data
-    Theta1 = nf.debugInitializeWeights(hidden_layer_size, input_layer_size)
-    Theta2 = nf.debugInitializeWeights(num_labels, hidden_layer_size)
-    # Reusing debugInitializeWeights to generate X
-    X_train  = nf.debugInitializeWeights(m, input_layer_size - 1)
-    y  = np.array([2,3,1,2,3]) #1 + mod(1:m, num_labels)'
-    Y_train = nf.one_hot(y,number_output_class)
-    #print(' norms are: %f, %f, %f, %f' %(np.linalg.norm(Theta1,2), np.linalg.norm(Theta2,2), \
-     #                                    np.linalg.norm(X,2), np.linalg.norm(y,2)))
-    Theta = [Theta1, Theta2]
+# elif 1 ==0:
+#     input_layer_size = 3
+#     hidden_layer_size = 5
+#     num_labels = 3
+#     m = 5
 
-else:
+#     # We generate some 'random' test data
+#     Theta1 = nf.debugInitializeWeights(hidden_layer_size, input_layer_size)
+#     Theta2 = nf.debugInitializeWeights(num_labels, hidden_layer_size)
+#     # Reusing debugInitializeWeights to generate X
+#     X_train  = nf.debugInitializeWeights(m, input_layer_size - 1)
+#     y  = np.array([2,3,1,2,3]) #1 + mod(1:m, num_labels)'
+#     Y_train = nf.one_hot(y,number_output_class)
+#     #print(' norms are: %f, %f, %f, %f' %(np.linalg.norm(Theta1,2), np.linalg.norm(Theta2,2), \
+#      #                                    np.linalg.norm(X,2), np.linalg.norm(y,2)))
+#     Theta = [Theta1, Theta2]
+
+
+elif matlab:
     # MATLAB STUFF
-    # Getting theta
+    
+    # Getting theta (these are just randomly initiated)
     Theta_ml = scipy.io.loadmat('matlab_stuff/ex4weights.mat')
-    Theta = [Theta_ml['Theta1'], Theta_ml['Theta2']]
+    Theta = [Theta_ml['Theta1'], Theta_ml['Theta2']]    
 
     # Getting data
-    rand = np.random.rand(2000)
-    rand = np.round(rand*5000).astype(int)
+    rand = np.random.rand(1000)
+    rand = np.round(rand*4999).astype(int)
     X_ml = scipy.io.loadmat('matlab_stuff/ex4data1.mat')
     X_train = X_ml['X']
     X_train = X_train[rand,:]
+    print X_train.shape
+    # print X_train[0,:]
+    # print np.min(X_train)
+    # print np.max(X_train)
+    # exit()
     Y_train = X_ml['y']
     Y_train = Y_train[rand]
+    print Y_train[1:21]
     Y_train = nf.one_hot(Y_train,number_output_class)
 
 Theta_sizes = list() # list of Theta shapes so it can be re-rolled
@@ -82,16 +101,18 @@ grad = lambda var_theta: nf.gradient_function(var_theta,X_train,Y_train,lam,Thet
 # print('Testing')
 # print cost(unrolled_Theta)
 # exit()
-solve = 1
-if solve == True:
+train = 0
+if train:
     print('CG time')
     sol = minimize(cost, unrolled_Theta, jac = grad, method = 'CG',\
-                   options={'disp': True})
+                   options={'disp': True}, tol=.0001)
 
     solution = sol.x
-    print(np.linalg.norm(solution,2))
-
-    np.savetxt('weights', solution, fmt='%1.5f')
+    
+    if not matlab:
+        np.savetxt('Kaggle/weights', solution, fmt='%1.5f')
+    else:
+        np.savetxt('MatLab/weights', solution, fmt='%1.5f')    
 
 
 ### PREDICT
@@ -99,41 +120,74 @@ if solve == True:
 #..........................................#
 # Import weight and testing data
 
-# Weights
-unrolled_Theta = np.loadtxt('weights')
-print np.linalg.norm(unrolled_Theta,2)
+if matlab:
+    # Weights
+    unrolled_Theta = np.loadtxt('weights')
 
-# Test data (matlab data test/train)
-X_ml = scipy.io.loadmat('matlab_stuff/ex4data1.mat')
-X_train = X_ml['X']
-X_train = X_train[rand,:]
-Y_train = X_ml['y']
-Y_train = Y_train[rand]
-Y_train_oh = nf.one_hot(Y_train,number_output_class)
-print Y_train_oh[:,0]
-print Y_train[0]
-exit()
+    # Test data (matlab data test/train)
+    X_ml = scipy.io.loadmat('matlab_stuff/ex4data1.mat')
+    X_train = X_ml['X']
+    X_train = X_train[rand,:]
+    Y_train = X_ml['y']
+    Y_train = Y_train[rand]
+    Y_train_oh = nf.one_hot(Y_train,number_output_class)
 
-Theta = nf.reroll_np_list(unrolled_Theta, Theta_sizes)
-h = nf.h_theta(Theta, X_train)
+    Theta = nf.reroll_np_list(unrolled_Theta, Theta_sizes)
+    h = nf.h_theta(Theta, X_train)
 
-output = np.zeros(len(h[0,:]))
+    output = nf.reverse_one_hot(h)
+    acc_vec = np.zeros(len(output))
+    for i in range(len(output)):
+        if int(output[i]) == int(Y_train[i]):
+            acc_vec[i] = 1.0
 
-print h[:,2]
-print h[:,3]
-exit()
-
-for i in range(len(output)):
-    output[i] = np.argmax(h[:,i]) + 1
-    if output[i] == Y_train[i]:
-        output[i] == 1.0
-    else:
-        output[i] == 0
-
-print output
-print( 'The accuracy is:')
-print np.mean(output)
+    print acc_vec
+    print( 'The accuracy is:')
+    print np.mean(acc_vec)
     
+elif not matlab:
+    # # Weights
+    unrolled_Theta = np.loadtxt('Kaggle/weights')
+    
+    print unrolled_Theta.shape
+
+    rand = np.random.rand(1000)
+    rand = np.round(rand*4999).astype(int)
+    #rand = np.arange(0,500)
+
+    # Test data (matlab data test/train)
+    train_df = pd.read_csv('Data/train.csv')
+    X_train = np.array(train_df.drop(['label'], axis=1))
+    X_train = X_train[rand,:]
+    X_train = X_train / np.std(X_train)
+    X_train = X_train - np.mean(X_train)
+    Y_train = np.array(train_df['label'])
+    Y_train = Y_train[rand]
+    for i in range(len(Y_train)):
+        if Y_train[i] == 0:
+            Y_train[i] = 10.0
+
+    t = 235
+    print (Y_train[t])
+
+    Theta = nf.reroll_np_list(unrolled_Theta, Theta_sizes)
+    h = nf.h_theta(Theta, X_train)
+    
+    print (h[:,t])
+
+    output = nf.reverse_one_hot(h)
+    print output[t]
+    for i in range(len(output)):
+        if output[i] == 10.0:
+            output[i] = 0.0
+    acc_vec = np.zeros(len(output))
+    for i in range(len(output)):
+        if int(output[i]) == int(Y_train[i]):
+            acc_vec[i] = 1.0
+
+    print( 'The accuracy is:')
+    print np.mean(acc_vec)
+
 
 
 
